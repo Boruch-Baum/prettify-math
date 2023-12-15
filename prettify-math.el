@@ -370,7 +370,7 @@ As syntax class is mostly exclusive."
           (if prettify-math-mode
               (progn
                 (prettify-math--register-in-font-lock)
-                (font-lock-flush))
+                (font-lock-flush (window-start) (window-end)))
             (prettify-math--unregister-in-font-lock)
             (with-silent-modifications
               (remove-list-of-text-properties (point-min) (point-max)
