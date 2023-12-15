@@ -309,23 +309,34 @@ Unfontify before fontify?"
          (bdlm-begs (-map #'prettify-math-delimiter-beg bdlms))
          (bdlm-begs-regexp (regexp-opt bdlm-begs))
          (bdlm-ends (-map #'prettify-math-delimiter-end bdlms))
-         (bdlm-ends-regexp (regexp-opt bdlm-ends)))
+         (bdlm-ends-regexp (regexp-opt bdlm-ends))
+         (in-bounds (lambda (p)
+                      (and (pos-visible-in-window-p p)
+                           (if (and (eq major-mode 'org-mode)
+                                    (org-invisible-p p t))
+                             nil
+                            t)))))
     (save-excursion
       (save-match-data
-        (if (boundp 'font-lock-beg)
-            (progn
+(when (funcall in-bounds (point))
+(message "point: %s; font-lock-beg: %s; font-lock-end: %s invisible: %s"
+   (point) font-lock-beg font-lock-end (org-invisible-p font-lock-beg t))
+        (when (and (boundp 'font-lock-beg)
+                   (funcall in-bounds font-lock-beg))
               (goto-char font-lock-beg)
               (re-search-backward bdlm-ends-regexp (point-min) t)
               (unless (equal (point) font-lock-beg)
                 (setq changed t
-                      font-lock-beg (point)))))
-        (if (boundp 'font-lock-end)
-            (progn
+                      font-lock-beg (point))))
+        (when (and (boundp 'font-lock-end)
+                   (funcall in-bounds font-lock-end))
               (goto-char font-lock-end)
               (re-search-forward bdlm-begs-regexp (point-max) t)
               (unless (equal (point) font-lock-end)
                 (setq changed t
                       font-lock-end (point)))))))
+(message "point: %s; font-lock-beg: %s; font-lock-end: %s; changed: %s"
+  (point) font-lock-beg font-lock-end changed)
     changed))
 
 ;;;;;;;;;;;;;;;;;;; end fontlock related ;;;;;;;;;;;;;;;;;
